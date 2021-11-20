@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from rest_framework.decorators import api_view
 from rest_framework.utils import json
 
+from data.db import query_random_questions_of_topic
 from data.models import Topic, Question, Answer
 from data.utils import error_response, success
 
@@ -84,8 +85,8 @@ def quiz_generate(request, *args, **kwargs):
         topic = topic_query.first()
 
         # construct random quiz
-        query = Question.objects.filter(topic_id=topic_id).order_by("?")  # random ordering
-        if not query.exists():
+        query = query_random_questions_of_topic(topic_id)  # random ordering
+        if not len(questions) < 1:
             return error_response(400, 2, "not enough questions found.")
 
         questions = []
