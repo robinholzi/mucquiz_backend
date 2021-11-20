@@ -111,7 +111,7 @@ def quiz_generate(request, *args, **kwargs):
             })
 
             # check if desired size already reached
-            if len(query) >= size:
+            if len(questions) >= size:
                 break
 
         if len(questions) < 1:
