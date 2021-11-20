@@ -16,24 +16,24 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-v)q*1u35fzkdy39b)yjmmj221dd78!)!%jdjk=)4ja%khq!i*o'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "192.168.178.20",
-    "192.168.178.21",
-    "127.0.0.1",
-    "localhost",
-    "deimosis.com",
-    "0.0.0.0",
-]
-
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [
+        "192.168.178.20",
+        "192.168.178.21",
+        "127.0.0.1",
+        "localhost",
+        "hackatum.robinh.xyz",
+        "0.0.0.0",
+        "hacktum.robinh.xyz:6942",
+    ]
 
 # Application definition
 

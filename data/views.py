@@ -129,15 +129,62 @@ def quiz_generate(request, *args, **kwargs):
         return error_response(500, 0, "internal error.", )
 
 
+# helper question:{id, ans_ids, ans_detail}
+def _eval_question(question):
+    # we avoid to use raw sql join queries ;)
+    correct_answers_query = Answer.objects.filter(question_id=question['id'], correct=True)
+
+    todo_answers = list(question['ans_ids'])
+    incorrect_answers = []
+    for correctAns in correct_answers_query:
+        if correctAns.id in todo_answers:
+            # as it should be correct answer chosen:
+            pass
+        else:  # correct answer not marked as correct
+            incorrect_answers.append({
+                'id': correctAns.id,
+                'text': correctAns.text,
+                'correct': correctAns.correct,
+            })
+
+        todo_answers.remove(correctAns.id)
+
+    # rest: marked as correct, but actually false
+    for falsePositive in todo_answers:
+        ans_query = Answer.objects.filter(id=falsePositive, question_id=question['id'])
+        if not ans_query.exists():
+            incorrect_answers.append({
+                'id': falsePositive,
+                'text': "answer not available for this question",
+                'correct': False,
+            })
+            continue
+        incorrect_answers.append({
+            'id': ans_query.first().id,
+            'text': ans_query.first().text,
+            'correct': ans_query.first().correct,
+        })
+
+    # todo_answers.clear()  # not used anymore
+
+    return {
+            'question_id': question['id'],
+            'answer_correct': len(incorrect_answers) < 1,
+            'incorrect_answers': incorrect_answers,
+            'answer_detail': question['ans_detail'],
+        }
+
+
 @api_view(['POST'])
 def quiz_evaluate(request, *args, **kwargs):
     try:
         req_data = json.loads(request.body)
         question_id = int(req_data['question_id'])
-        chosen_answer_ids = req_data['chosen_answer_ids']
+        ans_ids = []
+        for ans_id in list(req_data['chosen_answer_ids']):
+            ans_ids.append(int(ans_id))
 
     except ValueError as err:
-        print("err: ", err)
         return error_response(400, 0, "error parsing request data.")
 
     try:
@@ -146,46 +193,57 @@ def quiz_evaluate(request, *args, **kwargs):
         if not question_query.exists():
             return error_response(400, 1, "question not existing")
 
-        # we avoid to use raw sql join queries ;)
-        correct_answers_query = Answer.objects.filter(question_id=question_id, correct=True)
+        return success(200, 0, "answer evaluated successfully.", data=_eval_question({
+            'id': question_id,
+            'ans_ids': ans_ids,
+            'ans_detail': question_query.first().answer_detail,
+        }))
 
-        todo_answers = list(chosen_answer_ids)
-        incorrect_answers = []
-        for correctAns in correct_answers_query:
-            if correctAns.id in todo_answers:
-                # as it should be correct answer chosen:
-                pass
-            else:  # correct answer not marked as correct
-                incorrect_answers.append({
-                    'id': correctAns.id,
-                    'text': correctAns.text,
-                    'correct': correctAns.correct,
-                })
+    except Exception as ex:
+        return error_response(500, 0, "internal error.", )
 
-            todo_answers.remove(correctAns.id)
 
-        # rest: marked as correct, but actually false
-        for falsePositive in todo_answers:
-            ans_query = Answer.objects.filter(id=falsePositive)
-            if not ans_query.exists():
-                incorrect_answers.append({
-                    'id': falsePositive,
-                    'text': "answer not available for this question",
-                    'correct': False,
-                })
-                continue
-            incorrect_answers.append({
-                'id': ans_query.first().id,
-                'text': ans_query.first().text,
-                'correct': ans_query.first().correct,
+@api_view(['POST'])
+def quiz_evaluate_total(request, *args, **kwargs):
+    questions = []
+
+    try:
+        req_data = json.loads(request.body)
+        req_questions = list(req_data)
+
+        for quest in req_questions:
+            question_id = int(quest['question_id'])
+            chosen_answer_ids = []
+            for ans_id in list(quest['chosen_answer_ids']):
+                chosen_answer_ids.append(int(ans_id))
+
+            questions.append({
+                'id': question_id,
+                'ans_ids': chosen_answer_ids,
             })
 
-        # todo_answers.clear()  # not used anymore
+    except ValueError as err:
+        return error_response(400, 0, "error parsing request data.")
 
-        return success(200, 0, "answer evaluated successfully.", data={
-            'answer_correct': len(incorrect_answers) < 1,
-            'incorrect_answers': incorrect_answers,
-        })
+    try:
+        questions_results = []
 
-    except:
+        # check if topic exists
+        for quest in questions:
+            question_query = Question.objects.filter(id=question_id)
+            if not question_query.exists():
+                questions_results.append({
+                    "question_id": quest['id'],
+                    "answer_correct": False,
+                    "answer_detail": "this question does not exist!",
+                })
+                continue
+
+            updated_quest: map = quest
+            updated_quest.update({'ans_detail': question_query.first().answer_detail})
+            questions_results.append(_eval_question(updated_quest))
+
+        return success(200, 0, "answers evaluated successfully.", data=questions_results)
+
+    except Exception as ex:
         return error_response(500, 0, "internal error.", )

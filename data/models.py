@@ -4,7 +4,7 @@ from django.db import models
 class Topic(models.Model):
     title = models.CharField('title', max_length=250)
     description = models.TextField('description', blank=True, null=True)
-    img_url = models.CharField('img_url', max_length=2048, blank=True, null=True)
+    img_url = models.CharField('img_url', max_length=4096, blank=True, null=True)
 
     updated = models.DateTimeField('updated', auto_now=True)
     created = models.DateTimeField('created', auto_now_add=True)
@@ -18,7 +18,10 @@ class Question(models.Model):
 
     text = models.CharField('name', max_length=1000)
     description = models.TextField('description', blank=True, null=True)
-    img_url = models.CharField('img_url', max_length=2048, blank=True, null=True)
+    img_url = models.CharField('img_url', max_length=4096, blank=True, null=True)
+
+    answer_detail = models.CharField('img_url', max_length=4096, blank=True, null=True)
+    answer_img_url = models.CharField('img_url', max_length=4096, blank=True, null=True)
 
     updated = models.DateTimeField('updated', auto_now=True)
     created = models.DateTimeField('created', auto_now_add=True)
@@ -30,7 +33,7 @@ class Question(models.Model):
 class Answer(models.Model):
     question = models.ForeignKey(Question, null=False, on_delete=models.CASCADE)
 
-    text = models.CharField('name', max_length=1000)
+    text = models.CharField('text', max_length=1000)
     correct = models.BooleanField('correct =', blank=False, null=False, default=False)
 
     updated = models.DateTimeField('updated', auto_now=True)
