@@ -105,11 +105,11 @@ DATABASES = {
         # 'NAME': BASE_DIR / 'db.sqlite3',
 
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hackatum',
-        'USER': 'hackatum',
-        'PASSWORD': 'hackatum',
-        'HOST': 'hackatum.robinh.xyz',
-        'PORT': '9110',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
 
         # 'OPTIONS': {'charset': 'utf8mb4'},
     }
