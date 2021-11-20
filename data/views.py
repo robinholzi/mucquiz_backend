@@ -139,7 +139,7 @@ def _eval_question(question):
     for correctAns in correct_answers_query:
         if correctAns.id in todo_answers:
             # as it should be correct answer chosen:
-            pass
+            todo_answers.remove(correctAns.id)
         else:  # correct answer not marked as correct
             incorrect_answers.append({
                 'id': correctAns.id,
@@ -147,7 +147,6 @@ def _eval_question(question):
                 'correct': correctAns.correct,
             })
 
-        todo_answers.remove(correctAns.id)
 
     # rest: marked as correct, but actually false
     for falsePositive in todo_answers:
