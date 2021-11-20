@@ -68,6 +68,8 @@ def quiz_generate(request, *args, **kwargs):
         size = int(request.GET.get('size', 4))
         if size < 1:
             size = 4
+        if size > 10:
+            size = 10
 
     except ValueError as err:
         print("err: ", err)
