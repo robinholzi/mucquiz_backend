@@ -16,7 +16,7 @@ class Topic(models.Model):
 class Question(models.Model):
     topic = models.ForeignKey(Topic, null=False, on_delete=models.CASCADE)
 
-    text = models.CharField('name', max_length=1000)
+    text = models.CharField('text', max_length=1000)
     description = models.TextField('description', blank=True, null=True)
     img_url = models.CharField('img_url', max_length=4096, blank=True, null=True)
 

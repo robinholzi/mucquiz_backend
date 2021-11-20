@@ -1,4 +1,4 @@
-from random import random, randint
+from random import shuffle, randint
 
 from django.core.paginator import Paginator
 from rest_framework.decorators import api_view
@@ -85,14 +85,14 @@ def quiz_generate(request, *args, **kwargs):
         topic = topic_query.first()
 
         # construct random quiz
-        query = query_random_questions_of_topic(topic_id)  # random ordering
-        if not len(questions) < 1:
+        query = query_random_questions_of_topic(topic_id, size)  # random ordering
+        if len(query) < 1:
             return error_response(400, 2, "not enough questions found.")
 
         questions = []
         for item in query:
             # we avoid to use raw sql join queries ;)
-            answers_query = Answer.objects.filter(question_id=item.id)
+            answers_query = Answer.objects.filter(question_id=item['id'])
             if not answers_query.exists():
                 continue  # skip this question (min. 1 answers required)
 
@@ -103,11 +103,12 @@ def quiz_generate(request, *args, **kwargs):
                     'text': ans.text,
                 })
 
+            shuffle(answers)
             questions.append({
-                'id': item.id,
-                'title': item.text,
-                'description': item.description,
-                'img_url': item.img_url,
+                'id': item['id'],
+                'text': item['text'],
+                'description': item['description'],
+                'img_url': item['img_url'],
                 'answers': answers,
             })
 
@@ -128,7 +129,8 @@ def quiz_generate(request, *args, **kwargs):
             'questions': questions,
         })
 
-    except:
+    except Exception as ex:
+        print(">> ", ex)
         return error_response(500, 0, "internal error.", )
 
 
