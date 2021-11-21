@@ -234,7 +234,7 @@ def quiz_evaluate_total(request, *args, **kwargs):
 
         # check if topic exists
         for quest in questions:
-            question_query = Question.objects.filter(id=question_id)
+            question_query = Question.objects.filter(id=quest['id'])
             if not question_query.exists():
                 questions_results.append({
                     "question_id": quest['id'],
